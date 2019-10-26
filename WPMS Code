@@ -7,18 +7,25 @@
 void homepage();
 void admin();
 void users();
-void user_details();
-void venue_details();
-void calendar();
-void booking_details(int i);
-void mandap_decoration();
-void stage_decoration();
+void user_actions();
+void viewUserDetails();
+void userRegistration();
+void userLogin();
+void add_venues();
+void calendar(int bookedVenue);
+void viewAllBookings();
+void bookAnEvent();
+int list_of_venues();
+void viewMyBookings();
+void mandap_decoration(int type_of_user);
+void stage_decoration(int type_of_user);
 void catering();
+int uid;
 struct user_details
 {
     char userName[100],user_password[100],address[100],gender[6];
     double mobile;
-    int user_id=101;
+    int user_id=100;
 }user;
 struct venue_details
 {
@@ -31,16 +38,20 @@ struct calendar
 {
     int userDate,userMonth,userYear;
 }cal;
-int booking_id=1,bookedDate=0,bookedMonth=0,bookedYear=0;
+struct booking
+{
+    int booking_id=0,user_id,userDate,userMonth,userYear;
+    char userName[100],venueName[100],location[100];
+}booking;
 int main()
 {
-
     printf("\n\n\t\t\t\tWEDDING PLANNER\n\n");
     homepage();
     return 0;
 }
 void homepage()
 {
+    system("cls");
     int ch;
     printf("1. ADMIN\n2. CUSTOMER\n3. EXIT\n");
     do
@@ -59,115 +70,208 @@ void homepage()
 }
 void admin()
 {
-    int i=0,option;
+    int flag=0,option;
     system("cls");
     char password[]="password90",confirm[20];
-    printf("Please enter password to confirm if you are admin: ");
-    scanf("%s",confirm);
-    if(!strcmp(confirm,password))
+    do
     {
-        printf("1. Add Venues\n2. Mandap Decoration\n3. Stage Decoration\n4. View Bookings\n");
-        scanf("%d",&option);
-        switch(option)
+        printf("Please enter password to confirm if you are admin: ");
+        scanf("%s",confirm);
+        if(!strcmp(confirm,password))
         {
-            case 1: venue_details();
-            break;
-            case 2: mandap_decoration();
-            break;
-            case 3: stage_decoration();
-            break;
-            case 4: booking_details(1);
-            break;
+            system("cls");
+            flag=1;
+            do
+            {
+                system("cls");
+                printf("1. Add Venues\n2. Mandap Decoration\n3. Stage Decoration\n4. View Bookings\n5. Logout\n");
+                printf("Select anyone of the options: ");
+                scanf("%d",&option);
+                switch(option)
+                {
+                    case 1: add_venues();
+                    break;
+                    case 2: mandap_decoration(0);
+                    break;
+                    case 3: stage_decoration(0);
+                    break;
+                    case 4: viewAllBookings();
+                    break;
+                    case 5: homepage();
+                }
+            }while(1);
         }
-    }
+        else printf("Enter correct password\n");
+    }while(flag==0);
 }
 void users()
 {
-    int i=0;
-    user_details();
-}
-void user_details()
-{
-    int choice,uid,pwd=0,uid_present=0;
-    char upassword[100];
-    FILE *userDetails,*userDetailsCopy;
-    printf("1. Register\n");
-    printf("2. Login\n");
-    scanf("%d",&choice);
-    if(choice==1)
+    system("cls");
+    int i=0,choice;
+    do
     {
-        userDetails=fopen("UserDetails.txt","ab");
-        if(userDetails==NULL)
-            printf("Cannot open userDetails file\n");
-        userDetailsCopy=fopen("UserDetailsCopy.txt","ab");
-        if(userDetailsCopy==NULL)
-            printf("Cannot open userDetailsCopy file\n");
-        fflush(stdin);
-        printf("Name: ");
-        scanf("%[^\n]s",user.userName);
-        fflush(stdin);
-        printf("Gender: ");
-        scanf("%s",user.gender);
-        fflush(stdin);
-        printf("Mobile: ");
-        scanf("%lf",&user.mobile);
-        fflush(stdin);
-        printf("Address: ");
-        scanf("%[^\n]s",user.address);
-        printf("Create a password to use this during login which must have atleast 8 characters\n");
-        do
-        {
-            fflush(stdin);
-            scanf("%s",user.user_password);
-            if(strlen(user.user_password)<8) printf("Enter a valid password\n");
-        }while(strlen(user.user_password)<8);
-        printf("You have registered successfully. Your ID is %d\nPlease use the same for login\n",user.user_id);
-        fwrite(&user,sizeof(user),1,userDetails);
-        fprintf(userDetailsCopy, "%d %s %s %s %.lf %s\n",user.user_id,user.user_password,user.userName,user.gender,user.mobile,user.address);
-        fclose(userDetails);
-        fclose(userDetailsCopy);
+        printf("1. Register\n");
+        printf("2. Login\n3. Homepage\n\n");
+        scanf("%d",&choice);
+    }while(choice<=0 || choice>3);
+    switch(choice)
+    {
+        case 1: userRegistration();
+        break;
+        case 2: userLogin();
+        break;
+        case 3: homepage();
+        break;
     }
-    if(choice==2)
+    user_actions();
+}
+void user_actions()
+{
+    int action,answer;
+    do
     {
-        FILE *fp=fopen("UserDetails.txt","rb");
-        fflush(stdin);
         do
         {
-            printf("User ID: ");
-            scanf("%d",&uid);
-            rewind(fp);
-            while(fread(&user,sizeof(user),1,fp)==1)
-            {
-                if(uid==user.user_id)
-                {
-                    uid_present=1;
+            system("cls");
+            printf("1. My details\n2. Book an event\n3. My bookings\n4. Logout\n");
+            printf("Select anyone of the options by entering the corresponding number: ");
+            scanf("%d",&action);
+        }while(action<1 || action>4);
+        switch(action)
+        {
+            case 1: viewUserDetails();
                     break;
-                }
-            }
-            if(uid_present==0) printf("Invalid user ID. Please enter again\n");
-        }while(uid_present==0);
-        rewind(fp);
-        do
+            case 2: bookAnEvent();
+                    break;
+            case 3: viewMyBookings();
+                    break;
+            case 4: homepage();
+                    break;
+        }
+        fflush(stdin);
+        char input;
+        printf("Press enter to go back: ");
+        scanf("%c",&input);
+    }while(1);
+}
+void viewUserDetails()
+{
+    system("cls");
+    FILE *readUserDetails;
+    readUserDetails=fopen("UserDetails.txt","rb");
+    while(fread(&user,sizeof(user),1,readUserDetails)==1)
+    {
+        if(uid == user.user_id)
         {
-            fflush(stdin);
-            printf("Password: ");
-            scanf("%s",upassword);
-            rewind(fp);
-            while(fread(&user,sizeof(user),1,fp)==1)
-            {
-                if(uid==user.user_id && (strcmp(upassword,user.user_password)==0))
-                    pwd=1;
-            }
-        }while(pwd==0);
+            printf("ID: %d\n",user.user_id);
+            printf("Name: %s\n",user.userName);
+            printf("Gender: %s\n",user.gender);
+            printf("Mobile: %.lf\n",user.mobile);
+            printf("Address: %s\n",user.address);
+        }
+    }
+    fclose(readUserDetails);
+}
+void userRegistration()
+{
+    system("cls");
+    int answer;
+    FILE *userDetails,*userDetailsCopy,*readUserID;
+    readUserID=fopen("UserDetails.txt","rb");
+    if(readUserID==NULL)
+        printf("Not there\n");
+    while(fread(&user,sizeof(user),1,readUserID)==1);
+    int uid=user.user_id;
+    user.user_id=uid+1;
+    fclose(readUserID);
+    userDetails=fopen("UserDetails.txt","ab");
+    if(userDetails==NULL)
+        printf("Cannot open userDetails file\n");
+    userDetailsCopy=fopen("UserDetailsCopy.txt","ab");
+    if(userDetailsCopy==NULL)
+        printf("Cannot open userDetailsCopy file\n");
+    fflush(stdin);
+    printf("Name: ");
+    scanf("%[^\n]s",user.userName);
+    fflush(stdin);
+    printf("Gender: ");
+    scanf("%s",user.gender);
+    fflush(stdin);
+    printf("Mobile: ");
+    scanf("%lf",&user.mobile);
+    fflush(stdin);
+    printf("Address: ");
+    scanf("%[^\n]s",user.address);
+    printf("Create a password to use this during login which must have atleast 8 characters\n");
+    do
+    {
+        fflush(stdin);
+        scanf("%s",user.user_password);
+        if(strlen(user.user_password)<8) printf("Enter a valid password\n");
+    }while(strlen(user.user_password)<8);
+    printf("You have registered successfully. Your ID is %d\nPlease use the same for login\n",user.user_id);
+    fwrite(&user,sizeof(user),1,userDetails);
+    fprintf(userDetailsCopy, "%d %s %s %s %.lf %s\n",user.user_id,user.user_password,user.userName,user.gender,user.mobile,user.address);
+    fclose(userDetails);
+    fclose(userDetailsCopy);
+    do
+    {
+        printf("Do you want to proceed further?\nEnter 1 to proceed and 0 to exit: ");
+        scanf("%d",&answer);
+    }while(answer<0 || answer>1);
+    if(answer == 0) exit(0);
+    else
+    {
+        printf("You need to login with your id to proceed....\n");
+        userLogin();
     }
 }
-void venue_details()
+void userLogin()
 {
+    system("cls");
+    int pwd=0,uid_present=0;
+    char upassword[100];
+    FILE *userDetails;
+    userDetails=fopen("UserDetails.txt","rb");
+    fflush(stdin);
+    do
+    {
+        printf("User ID: ");
+        scanf("%d",&uid);
+        rewind(userDetails);
+        while(fread(&user,sizeof(user),1,userDetails)==1)
+        {
+            if(uid==user.user_id)
+            {
+                uid_present=1;
+                break;
+            }
+        }
+        if(uid_present==0) printf("Invalid user ID. Please enter again\n");
+    }while(uid_present==0);
+    rewind(userDetails);
+    do
+    {
+        fflush(stdin);
+        printf("Password: ");
+        scanf("%s",upassword);
+        rewind(userDetails);
+        while(fread(&user,sizeof(user),1,userDetails)==1)
+        {
+            if(uid==user.user_id && (strcmp(upassword,user.user_password)==0))
+                pwd=1;
+        }
+    }while(pwd==0);
+    fclose(userDetails);
+}
+void add_venues()
+{
+    system("cls");
     FILE *venueDetails,*venueDetailsCopy;
     venueDetails=fopen("VenueDetails.txt","ab");
     if(venueDetails==NULL)
         printf("Cannot open VenueDetails file\n");
-    venueDetailsCopy=fopen("VenueDetailsCopy.txt","w");
+    venueDetailsCopy=fopen("VenueDetailsCopy.txt","ab");
     if(venueDetailsCopy==NULL)
         printf("Cannot open VenueDetailsCopy file\n");
     fflush(stdin);
@@ -189,126 +293,363 @@ void venue_details()
     fclose(venueDetails);
     fclose(venueDetailsCopy);
 }
-void calendar()
+void calendar(int bookedVenue)
 {
     SYSTEMTIME str_t;
 	GetSystemTime(&str_t);
-	int flag=0;
-    int monthDay[]={31,28,31,30,31,30,31,31,30,31,30,31};
+	int flag=0,count=1;
+    int monthDay[]={31,28,31,30,31,30,31,31,30,31,30,31},date,month,year;
+    char vName[100],vLocation[100];
     do
     {
         flag=0;
         printf("Enter date: ");
         scanf("%d",&cal.userDate);
+        date=cal.userDate;
         printf("Enter month: ");
         scanf("%d",&cal.userMonth);
-        printf("Year: ");
+        month=cal.userMonth;
+        printf("Enter Year: ");
         scanf("%d",&cal.userYear);
+        year=cal.userYear;
         if(cal.userYear%4==0&&cal.userYear%100!=0||cal.userYear%400==0)
             monthDay[1]=29;
         if(cal.userMonth==str_t.wMonth&&cal.userDate<=str_t.wDay)
             flag=1;
-        if(cal.userDate>monthDay[cal.userMonth-1]||cal.userMonth>12||cal.userMonth<str_t.wMonth||cal.userYear<str_t.wYear)
+        if(cal.userDate>monthDay[cal.userMonth-1]||cal.userMonth>12||(cal.userMonth<str_t.wMonth&&cal.userYear<=str_t.wYear))
             flag=1;
-        if(bookedDate==0&&bookedMonth==0&&bookedYear==0&&flag==0)
+        FILE *readVenueDetails=fopen("VenueDetails.txt","rb");
+        while(fread(&venue,sizeof(venue),1,readVenueDetails)==1)
         {
-            bookedDate=1;
-            bookedMonth=1;
-            bookedYear=1;
+            if(count==bookedVenue)
+            {
+                strcpy(vName,venue.venueName);
+                strcpy(vLocation,venue.location);
+                break;
+            }
+            count++;
         }
+        fclose(readVenueDetails);
+        FILE *readBookingDetails=fopen("VenuesBooked.txt","rb");
+        if(readBookingDetails==NULL) printf("File Not Found\n");
         else
         {
-            flag=1;
-            printf("This venue is not available on this date. So, please select a valid date\n");
+            while(fread(&booking,sizeof(booking),1,readBookingDetails)==1)
+            {
+                if((!strcmp(vName,booking.venueName)) && (!strcmp(vLocation,booking.location)))
+                {
+                    if(date==booking.userDate && month==booking.userMonth && year==booking.userYear)
+                    {
+                        flag=1;
+                        printf("This venue is not available on this date. So, please select a valid date\n");
+                        break;
+                    }
+                }
+            }
         }
+        fclose(readBookingDetails);
     }while(flag==1);
 }
-void booking_details(int i)
+void viewMyBookings()
 {
-    if(i==0)
+    system("cls");
+    FILE *readBookedDetails;
+    readBookedDetails=fopen("VenuesBooked.txt","rb");
+    if(readBookedDetails==NULL) printf("EMpty\n");
+    while(fread(&booking,sizeof(booking),1,readBookedDetails)==1)
     {
-        FILE *writeBookingDetails;
-        writeBookingDetails=fopen("VenuesBooked.txt","a");
-        fprintf(writeBookingDetails, "%d %s", booking_id,user.userName);
-        calendar();
-        fprintf(writeBookingDetails, "%s %s %d %d %d\n",venue.venueName,venue.location,cal.userDate,cal.userMonth,cal.userYear);
-        fclose(writeBookingDetails);
+        if(uid == booking.user_id)
+        {
+            printf("Booking ID: %d\n",booking.booking_id);
+            printf("User ID: %d\n",booking.user_id);
+            printf("User Name: %s\n",booking.userName);
+            printf("Venue Name: %s\n",booking.venueName);
+            printf("Venue Location: %s\n",booking.location);
+            printf("Booked Date: %d / %d / %d\n",booking.userDate,booking.userMonth,booking.userYear);
+        }
     }
-    if(i==1)
-    {
-        FILE *readBookingDetails;
-        readBookingDetails=fopen("VenuesBooked.txt","r");
-        while(fscanf(readBookingDetails,"%d %[^\n]s %[^\n]s %[^\n]s %d %d %d",&booking_id,user.userName,venue.venueName,venue.location,&cal.userDate,&cal.userMonth,&cal.userYear)!=EOF)
-            printf("%d %s %s %s %d %d %d",booking_id,user.userName,venue.venueName,venue.location,cal.userDate,cal.userMonth,cal.userYear);
-        fclose(readBookingDetails);
-    }
+    fclose(readBookedDetails);
 }
-void stage_decoration()
+void bookAnEvent()
 {
-    int stage;
-    printf("Here are the list of different stage decorations\n");
-    printf("1. Colourful Floral Stage\n2. Decorative Stage\n3. White Flowers Decoration\n4. Shining Bright with Red and White\n5. Valaikappu Stage\n");
-    scanf("%d",&stage);
-    FILE *fileread=fopen("VenueDetails.txt","rb");
-    switch(stage)
+    int choice,bookedVenue,count=1,bookedMandap,bookedStage,answer,bid;
+    FILE *writeBookingDetails,*readBookingDetails;
+    FILE *readUserDetails,*readVenueDetails;
+    do
     {
+        system("cls");
+        printf("1. List of Venues\n2. Mandap Decorations\n3. Stage Decorations\n4. Catering Services\n5. Go Back\n");
+        do
+        {
+            printf("Select your choice by entering a number from above options: ");
+            scanf("%d",&choice);
+        }while(choice<1 && choice>5);
+        switch(choice)
+        {
+            case 1: bookedVenue = list_of_venues();
+                    calendar(bookedVenue);
+                    readBookingDetails=fopen("VenuesBooked.txt","rb");
+                    if(readBookingDetails==NULL)
+                        printf("Not there\n");
+                    while(fread(&booking,sizeof(booking),1,readBookingDetails)==1);
+                    bid=booking.booking_id;
+                    booking.booking_id=bid+1;
+                    fclose(readBookingDetails);
+                    readUserDetails=fopen("UserDetails.txt","rb");
+                    while(fread(&user,sizeof(user),1,readUserDetails)==1)
+                    {
+                        if(uid == user.user_id)
+                        {
+                            booking.user_id=user.user_id;
+                            strcpy(booking.userName,user.userName);
+                            break;
+                        }
+                    }
+                    fclose(readUserDetails);
+                    readVenueDetails=fopen("VenueDetails.txt","rb");
+                    while(fread(&venue,sizeof(venue),1,readVenueDetails)==1)
+                    {
+                        if(count==bookedVenue)
+                        {
+                            strcpy(booking.venueName,venue.venueName);
+                            strcpy(booking.location,venue.location);
+                            booking.userDate=cal.userDate;
+                            booking.userMonth=cal.userMonth;
+                            booking.userYear=cal.userYear;
+                            writeBookingDetails=fopen("VenuesBooked.txt","ab");
+                            fwrite(&booking,sizeof(booking),1,writeBookingDetails);
+                            break;
+                        }
+                        count++;
+                    }
+                    fclose(readVenueDetails);
+                    fclose(writeBookingDetails);
 
-        case 1: initwindow(700,500,"Colorful Floral Stage");
-                readimagefile("E:\\ARC\\B.Tech\\Code Blocks\\WPMS\\Planning\\Stages\\Colourful Floral Stage.jpg",150,100,507,264);
-                outtextxy(270,20,"Colorful Floral Stage");
-                break;
-        case 2: initwindow(950,650,"Decorative Stage");
-                readimagefile("E:\\ARC\\B.Tech\\Code Blocks\\WPMS\\Planning\\Stages\\Decorative Stage.jpg",50,50,914,600);
-                outtextxy(400,20,"Decorative Stage");
-                break;
-        case 3: initwindow(550,470,"White Flowers Decoration");
-                readimagefile("E:\\ARC\\B.Tech\\Code Blocks\\WPMS\\Planning\\Stages\\White Flowers Decoration.jpg",50,100,503,336);
-                outtextxy(200,20,"White Flowers Stage");
-                break;
-        case 4: initwindow(1015,700,"Shining Bright with Red and White");
-                readimagefile("E:\\ARC\\B.Tech\\Code Blocks\\WPMS\\Planning\\Stages\\Shining Bright with Red and White.jpg",50,50,986,659);
-                outtextxy(330,20,"Shining Bright with Red and White Stage");
-                break;
-        case 5: initwindow(790,430,"Valaikappu Stage");
-                readimagefile("E:\\ARC\\B.Tech\\Code Blocks\\WPMS\\Planning\\Stages\\Valaikappu Stage.jpg",40,45,737,387);
-                outtextxy(290,20,"Valaikappu Stage");
-                break;
-    }
-    getch();
+                    break;
+            case 2: mandap_decoration(1);
+                    break;
+            case 3: stage_decoration(1);
+                    break;
+            case 4: catering();
+                    break;
+            case 5: user_actions();
+                    break;
+        }
+    }while(1);
 }
-void mandap_decoration()
+int list_of_venues()
 {
-    int mandap;
-    printf("Here are the list of different mandap decorations\n");
-    printf("1. Banglore Mandap Decoration\n2. Mandap Decor with Banana Leaves\n3. Gold Satin with Gerbera floral row\n4. Four Pole Canopy\n5. White Satin with Maroon Drape\n");
-    scanf("%d",&mandap);
-    switch(mandap)
+    int bookedVenue;
+    char arr[100];
+    FILE *fileread;
+    fileread=fopen("VenueDetails.txt","rb");
+    printf("Book anyone venue from the available venues\n");
+    printf("Select the venue which you want to book by entering the corresponding number: ");
+    initwindow(900,600,"Drawings");
+    line(70,50,720,50);
+    outtextxy(80,60,"S no.");
+    outtextxy(140,60,"Venue Names");
+    outtextxy(270,60,"Venue Locations");
+    outtextxy(420,60,"Venue Contact");
+    outtextxy(560,60,"Capacity");
+    outtextxy(660,60,"Price");
+    line(70,90,720,90);
+    int xName=130,xLoc=260,xCon=410,xCap=550,xPrice=650,y=100,yHLine=130,sno=1,xSno=100;
+    while(fread(&venue,sizeof(venue),1,fileread)==1)
     {
-        case 1: initwindow(650,480,"Banglore Mandap Decoration");
-                readimagefile("E:\\ARC\\B.Tech\\Code Blocks\\WPMS\\Planning\\Mandaps\\Banglore Mandap Decoration.jpg",50,60,600,400);
-                outtextxy(240,20,"Banglore Mandap Decoration");
-                break;
-        case 2: initwindow(870,620,"Mandap Decor with Banana Leaves");
-                readimagefile("E:\\ARC\\B.Tech\\Code Blocks\\WPMS\\Planning\\Mandaps\\Mandap Decor with Banana Leaves.jpg",50,50,821,576);
-                outtextxy(330,20,"Mandap Decor with Banana Leaves");
-                break;
-        case 3: initwindow(900,620,"Gold Satin with Gerbera floral row");
-                readimagefile("E:\\ARC\\B.Tech\\Code Blocks\\WPMS\\Planning\\Mandaps\\Gold Satin with Gerbera floral row.jpg",50,50,856,575);
-                outtextxy(350,20,"Gold Satin with Gerbera floral row");
-                break;
-        case 4: initwindow(880,600,"Four Pole Canopy");
-                readimagefile("E:\\ARC\\B.Tech\\Code Blocks\\WPMS\\Planning\\Mandaps\\Four Pole Canopy.jpg",50,50,834,557);
-                outtextxy(380,20,"Four Pole Canopy");
-                break;
-        case 5: initwindow(690,510,"White Satin with Maroon Drape");
-                readimagefile("E:\\ARC\\B.Tech\\Code Blocks\\WPMS\\Planning\\Mandaps\\White Satin with Maroon Drape.jpg",70,50,625,469);
-                outtextxy(270,20,"White Satin with Maroon Drape");
-                break;
+        sprintf(arr,"%d",sno);
+        outtextxy(xSno,y,arr);
+        outtextxy(xName,y,venue.venueName);
+        outtextxy(xLoc,y,venue.location);
+        sprintf(arr,"%.lf",venue.venueContact);
+        outtextxy(xCon,y,arr);
+        sprintf(arr,"%d",venue.capacity);
+        outtextxy(xCap,y,arr);
+        sprintf(arr,"%.2f",venue.price);
+        outtextxy(xPrice,y,arr);
+        line(70,yHLine,720,yHLine);
+        line(70,50,70,yHLine);
+        line(120,50,120,yHLine);
+        line(250,50,250,yHLine);
+        line(400,50,400,yHLine);
+        line(540,50,540,yHLine);
+        line(640,50,640,yHLine);
+        line(720,50,720,yHLine);
+        y=y+40;
+        yHLine=yHLine+40;
+        sno++;
     }
     getch();
+    closegraph();
+    fclose(fileread);
+    scanf("%d",&bookedVenue);
+    return bookedVenue;
+}
+void viewAllBookings()
+{
+    FILE *readBookingDetails;
+    readBookingDetails=fopen("VenuesBooked.txt","rb");
+    char arr[100];
+    initwindow(900,600,"Drawings");
+    line(70,50,890,50);
+    outtextxy(80,60,"S no.");
+    outtextxy(140,60,"Booking ID");
+    outtextxy(270,60,"User ID");
+    outtextxy(420,60,"User Name");
+    outtextxy(560,60,"Venue Name");
+    outtextxy(660,60,"Venue Location");
+    outtextxy(780,60,"Booked Date");
+    line(70,90,890,90);
+    int xBid=130,xUid=260,xUName=410,xVName=560,xVLoc=660,xDate=790,y=100,yHLine=130,sno=1,xSno=100;
+    while(fread(&booking,sizeof(booking),1,readBookingDetails)==1)
+    {
+        sprintf(arr,"%d",sno);
+        outtextxy(xSno,y,arr);
+        sprintf(arr,"%d",booking.booking_id);
+        outtextxy(xBid,y,arr);
+        sprintf(arr,"%d",booking.user_id);
+        outtextxy(xUid,y,arr);
+        outtextxy(xUName,y,booking.userName);
+        outtextxy(xVName,y,booking.venueName);
+        outtextxy(xVLoc,y,booking.location);
+        sprintf(arr,"%d / ",booking.userDate);
+        outtextxy(xDate,y,arr);
+        sprintf(arr,"%d / ",booking.userMonth);
+        outtextxy(xDate+25,y,arr);
+        sprintf(arr,"%d",booking.userYear);
+        outtextxy(xDate+50,y,arr);
+        line(70,yHLine,890,yHLine);
+        line(70,50,70,yHLine);
+        line(120,50,120,yHLine);
+        line(250,50,250,yHLine);
+        line(400,50,400,yHLine);
+        line(540,50,540,yHLine);
+        line(650,50,650,yHLine);
+        line(770,50,770,yHLine);
+        line(890,50,890,yHLine);
+        y=y+40;
+        yHLine=yHLine+40;
+        sno++;
+    }
+    getch();
+    closegraph();
+    fclose(readBookingDetails);
+}
+void stage_decoration(int type_of_user)
+{
+    system("cls");
+    int stage,bookedStage;
+    do
+    {
+        system("cls");
+        printf("Here are the list of different stage decorations\n");
+        printf("1. Colourful Floral Stage\n2. Decorative Stage\n3. White Flowers Decoration\n4. Shining Bright with Red and White\n5. Valaikappu Stage\n6. Go back\n");
+        scanf("%d",&stage);
+        switch(stage)
+        {
+            case 1: initwindow(700,500,"Colorful Floral Stage");
+                    readimagefile("E:\\ARC\\B.Tech\\Code Blocks\\WPMS\\Planning\\Stages\\Colourful Floral Stage.jpg",150,100,507,264);
+                    outtextxy(270,20,"Colorful Floral Stage");
+                    outtextxy(270,280,"Price: 4000");
+                    break;
+            case 2: initwindow(950,650,"Decorative Stage");
+                    readimagefile("E:\\ARC\\B.Tech\\Code Blocks\\WPMS\\Planning\\Stages\\Decorative Stage.jpg",50,50,914,600);
+                    outtextxy(400,20,"Decorative Stage");
+                    outtextxy(400,620,"Price: 6000");
+                    break;
+            case 3: initwindow(550,470,"White Flowers Decoration");
+                    readimagefile("E:\\ARC\\B.Tech\\Code Blocks\\WPMS\\Planning\\Stages\\White Flowers Decoration.jpg",50,100,503,336);
+                    outtextxy(200,20,"White Flowers Stage");
+                    outtextxy(200,350,"Price: 7000");
+                    break;
+            case 4: initwindow(1015,700,"Shining Bright with Red and White");
+                    readimagefile("E:\\ARC\\B.Tech\\Code Blocks\\WPMS\\Planning\\Stages\\Shining Bright with Red and White.jpg",50,50,986,659);
+                    outtextxy(330,20,"Shining Bright with Red and White Stage");
+                    outtextxy(430,675,"Price: 9000");
+                    break;
+            case 5: initwindow(790,430,"Valaikappu Stage");
+                    readimagefile("E:\\ARC\\B.Tech\\Code Blocks\\WPMS\\Planning\\Stages\\Valaikappu Stage.jpg",40,45,737,387);
+                    outtextxy(290,20,"Valaikappu Stage");
+                    outtextxy(350,400,"Price: 10000");
+                    break;
+            case 6: return;
+        }
+        getch();
+        closegraph();
+        if(type_of_user==1)
+        {
+            int booking;
+            printf("Enter 1 to select a backdrop decoration or else 0\n");
+            scanf("%d",&booking);
+            if(booking==1)
+            {
+                printf("Book anyone style of backdrop decoration from the available decorations\n");
+                printf("Select the backdrop decoration which you want to book by entering the corresponding number: ");
+                scanf("%d",&bookedStage);
+                return;
+            }
+        }
+    }while(1);
+}
+void mandap_decoration(int type_of_user)
+{
+    system("cls");
+    int mandap,bookedMandap;
+    do
+    {
+        system("cls");
+        printf("Here are the list of different mandap decorations\n");
+        printf("1. Banglore Mandap Decoration\n2. Mandap Decor with Banana Leaves\n3. Gold Satin with Gerbera floral row\n4. Four Pole Canopy\n5. White Satin with Maroon Drape\n6. Go Back\n");
+        scanf("%d",&mandap);
+        switch(mandap)
+        {
+            case 1: initwindow(650,480,"Banglore Mandap Decoration");
+                    readimagefile("E:\\ARC\\B.Tech\\Code Blocks\\WPMS\\Planning\\Mandaps\\Banglore Mandap Decoration.jpg",50,60,600,400);
+                    outtextxy(240,20,"Banglore Mandap Decoration");
+                    outtextxy(260,420,"Price: 5000");
+                    break;
+            case 2: initwindow(870,620,"Mandap Decor with Banana Leaves");
+                    readimagefile("E:\\ARC\\B.Tech\\Code Blocks\\WPMS\\Planning\\Mandaps\\Mandap Decor with Banana Leaves.jpg",50,50,821,576);
+                    outtextxy(330,20,"Mandap Decor with Banana Leaves");
+                    outtextxy(380,590,"Price: 2000");
+                    break;
+            case 3: initwindow(900,620,"Gold Satin with Gerbera floral row");
+                    readimagefile("E:\\ARC\\B.Tech\\Code Blocks\\WPMS\\Planning\\Mandaps\\Gold Satin with Gerbera floral row.jpg",50,50,856,575);
+                    outtextxy(350,20,"Gold Satin with Gerbera floral row");
+                    outtextxy(400,590,"Price: 8000");
+                    break;
+            case 4: initwindow(880,600,"Four Pole Canopy");
+                    readimagefile("E:\\ARC\\B.Tech\\Code Blocks\\WPMS\\Planning\\Mandaps\\Four Pole Canopy.jpg",50,50,834,557);
+                    outtextxy(380,20,"Four Pole Canopy");
+                    outtextxy(400,570,"Price: 6000");
+                    break;
+            case 5: initwindow(690,510,"White Satin with Maroon Drape");
+                    readimagefile("E:\\ARC\\B.Tech\\Code Blocks\\WPMS\\Planning\\Mandaps\\White Satin with Maroon Drape.jpg",70,50,625,469);
+                    outtextxy(270,20,"White Satin with Maroon Drape");
+                    outtextxy(300,480,"Price: 7000");
+                    break;
+            case 6: return;
+        }
+        getch();
+        closegraph();
+        if(type_of_user==1)
+        {
+            int booking;
+            printf("Enter 1 to select a backdrop decoration or else 0\n");
+            scanf("%d",&booking);
+            if(booking==1)
+            {
+                printf("Book anyone style of mandap decoration from the available decorations\n");
+                printf("By entering the corresponding number: ");
+                scanf("%d",&bookedMandap);
+                return;
+            }
+        }
+    }while(1);
 }
 void catering()
 {
+    system("cls");
     int catering;
     printf("Food Services\n");
     printf("Type of food\t\t   Price Per Plate\n\n");
